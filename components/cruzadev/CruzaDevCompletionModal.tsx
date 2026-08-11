@@ -33,14 +33,15 @@ export default function CruzaDevCompletionModal({
       <div className="mb-4 max-h-56 space-y-2 overflow-y-auto rounded-lg border border-border bg-bg-subtle p-3 scrollbar-none">
         {entries.map((entry) => (
           <div key={`${entry.row}-${entry.col}-${entry.direction}`} className="text-sm leading-relaxed">
-            <span className="font-mono font-semibold text-text-primary">{entry.answer}</span>
+            <span className="font-mono font-semibold text-text-primary">{entry.word}</span>
             <span className="text-text-secondary"> — {entry.clue}</span>
           </div>
         ))}
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        Você completou a cruzadinha em {attempts} {attempts === 1 ? "verificação" : "verificações"}.
+        Você completou as {entries.length} palavras em {attempts}{" "}
+        {attempts === 1 ? "verificação" : "verificações"}.
       </p>
 
       <ShareButton shareText={shareText} />

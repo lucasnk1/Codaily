@@ -22,7 +22,7 @@ export default function CluesList({ entries, activeEntryKey, onSelect }: CluesLi
         <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-text-muted">
           {label}
         </h3>
-        <ul className="space-y-1">
+        <ul className="space-y-0.5">
           {group.map((entry) => {
             const isActive = entryKey(entry) === activeEntryKey;
             return (
@@ -50,7 +50,7 @@ export default function CluesList({ entries, activeEntryKey, onSelect }: CluesLi
   }
 
   return (
-    <div className="mx-auto grid w-full max-w-md grid-cols-1 gap-4 px-4 sm:grid-cols-2">
+    <div className="flex w-full flex-col gap-4 overflow-y-auto scrollbar-none">
       {renderGroup("Horizontais", across)}
       {renderGroup("Verticais", down)}
     </div>

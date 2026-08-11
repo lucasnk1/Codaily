@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import type { BuiltCrossword, Direction } from "@/lib/cruzadev";
+import type { BuiltCrossword } from "@/lib/cruzadev";
 
 type CheckMark = "correct" | "wrong" | null;
 
@@ -10,7 +10,6 @@ type CruzaDevGridProps = {
   userGrid: string[][];
   checkGrid: CheckMark[][];
   activeCell: [number, number] | null;
-  activeDirection: Direction;
   activeCells: Set<string>;
   disabled?: boolean;
   onCellFocus: (r: number, c: number) => void;
@@ -30,7 +29,7 @@ export default function CruzaDevGrid({
   onCellBackspace,
 }: CruzaDevGridProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[][]>(
-    Array.from({ length: built.size }, () => Array(built.size).fill(null))
+    Array.from({ length: built.rows }, () => Array(built.cols).fill(null))
   );
 
   function focusCell(r: number, c: number) {
@@ -49,13 +48,13 @@ export default function CruzaDevGrid({
 
   return (
     <div
-      className="mx-auto grid gap-[3px] rounded-xl border border-border bg-bg-card p-3"
-      style={{ gridTemplateColumns: `repeat(${built.size}, minmax(0, 1fr))`, maxWidth: 320 }}
+      className="mx-auto grid w-full gap-[2px] overflow-auto rounded-xl border border-border bg-bg-card p-2 scrollbar-none"
+      style={{ gridTemplateColumns: `repeat(${built.cols}, minmax(20px, 1fr))`, maxWidth: 560 }}
     >
       {built.grid.map((row, r) =>
         row.map((cell, c) => {
           if (cell.isBlack) {
-            return <div key={`${r}-${c}`} className="aspect-square rounded bg-bg" />;
+            return <div key={`${r}-${c}`} className="aspect-square rounded-sm bg-bg" />;
           }
 
           const key = `${r}-${c}`;
@@ -66,7 +65,7 @@ export default function CruzaDevGrid({
           return (
             <div key={key} className="relative aspect-square">
               {cell.number !== null && (
-                <span className="pointer-events-none absolute left-0.5 top-0 text-[8px] font-medium text-text-muted sm:text-[9px]">
+                <span className="pointer-events-none absolute left-0.5 top-0 text-[6px] font-medium text-text-muted sm:text-[8px]">
                   {cell.number}
                 </span>
               )}
@@ -87,7 +86,7 @@ export default function CruzaDevGrid({
                 }}
                 onKeyDown={(e) => handleKeyDown(e, r, c)}
                 className={[
-                  "h-full w-full rounded border-2 bg-transparent text-center font-mono text-sm font-bold uppercase text-text-primary outline-none transition-colors disabled:cursor-default sm:text-base",
+                  "h-full w-full rounded-sm border bg-transparent text-center font-mono text-[9px] font-bold uppercase text-text-primary outline-none transition-colors disabled:cursor-default sm:text-xs",
                   mark === "correct"
                     ? "border-feedback-correct bg-feedback-correct/20 text-feedback-correct"
                     : mark === "wrong"
