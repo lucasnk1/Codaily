@@ -146,7 +146,7 @@ export default function CruzaDev({ onGameEnd }: { onGameEnd?: (won: boolean) => 
         {built.category} · {built.entries.length} palavras
       </div>
 
-      <div className="mx-auto flex w-full max-w-5xl flex-col items-start gap-6 px-4 lg:flex-row lg:justify-center">
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-6 px-4 lg:flex-row">
         <div className="w-full lg:w-auto lg:shrink-0">
           <CruzaDevGrid
             built={built}
@@ -161,7 +161,7 @@ export default function CruzaDev({ onGameEnd }: { onGameEnd?: (won: boolean) => 
           />
         </div>
 
-        <div className="w-full lg:max-h-[560px] lg:w-80">
+        <div className="h-[420px] w-full lg:h-[560px] lg:flex-1">
           <CluesList entries={built.entries} activeEntryKey={activeEntryKey} onSelect={handleSelectEntry} />
         </div>
       </div>

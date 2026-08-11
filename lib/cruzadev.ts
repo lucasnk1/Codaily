@@ -221,11 +221,53 @@ function generateCrossword(pool: WordClue[], targetCount: number, seed: number) 
     return true;
   }
 
+  const bbox = { minR: CANVAS_SIZE, maxR: 0, minC: CANVAS_SIZE, maxC: 0 };
+
+  function growBBox(cells: [number, number][]) {
+    cells.forEach(([r, c]) => {
+      bbox.minR = Math.min(bbox.minR, r);
+      bbox.maxR = Math.max(bbox.maxR, r);
+      bbox.minC = Math.min(bbox.minC, c);
+      bbox.maxC = Math.max(bbox.maxC, c);
+    });
+  }
+
+  function bboxExpansion(cells: [number, number][]): number {
+    let minR = bbox.minR;
+    let maxR = bbox.maxR;
+    let minC = bbox.minC;
+    let maxC = bbox.maxC;
+    cells.forEach(([r, c]) => {
+      minR = Math.min(minR, r);
+      maxR = Math.max(maxR, r);
+      minC = Math.min(minC, c);
+      maxC = Math.max(maxC, c);
+    });
+    const before = Math.max(0, bbox.maxR - bbox.minR + 1) * Math.max(0, bbox.maxC - bbox.minC + 1);
+    const after = (maxR - minR + 1) * (maxC - minC + 1);
+    return after - before;
+  }
+
+  const centroid = { sumR: 0, sumC: 0, count: 0 };
+
+  function centroidDistance(cells: [number, number][]): number {
+    if (centroid.count === 0) return 0;
+    const cr = centroid.sumR / centroid.count;
+    const cc = centroid.sumC / centroid.count;
+    const total = cells.reduce((acc, [r, c]) => acc + Math.abs(r - cr) + Math.abs(c - cc), 0);
+    return total / cells.length;
+  }
+
   function commit(word: string, clue: string, row: number, col: number, dir: Direction) {
-    cellsOf(word, row, col, dir).forEach(([r, c], i) => {
+    const cells = cellsOf(word, row, col, dir);
+    cells.forEach(([r, c], i) => {
       grid[r][c] = word[i];
       markDir(r, c, dir);
+      centroid.sumR += r;
+      centroid.sumC += c;
+      centroid.count += 1;
     });
+    growBBox(cells);
     placed.push({ word, clue, row, col, direction: dir });
   }
 
@@ -233,10 +275,7 @@ function generateCrossword(pool: WordClue[], targetCount: number, seed: number) 
   const startCol = Math.floor((CANVAS_SIZE - anchor.word.length) / 2);
   commit(anchor.word, anchor.clue, startRow, startCol, "across");
 
-  for (const candidate of words) {
-    if (placed.length >= targetCount) break;
-    if (placed.some((p) => p.word === candidate.word)) continue;
-
+  function tryPlace(candidate: WordClue): boolean {
     const tries: { row: number; col: number; dir: Direction }[] = [];
     for (let r = 0; r < CANVAS_SIZE; r++) {
       for (let c = 0; c < CANVAS_SIZE; c++) {
@@ -259,12 +298,46 @@ function generateCrossword(pool: WordClue[], targetCount: number, seed: number) 
     }
 
     const shuffledTries = seededShuffle(tries, rand);
+    let best: { row: number; col: number; dir: Direction; score: number } | null = null;
+
     for (const t of shuffledTries) {
-      if (canPlace(candidate.word, t.row, t.col, t.dir)) {
-        commit(candidate.word, candidate.clue, t.row, t.col, t.dir);
-        break;
+      if (!canPlace(candidate.word, t.row, t.col, t.dir)) continue;
+      const cells = cellsOf(candidate.word, t.row, t.col, t.dir);
+      const overlapCount = cells.filter(([r, c]) => grid[r][c] !== null).length;
+      const expansion = bboxExpansion(cells);
+      const distance = centroidDistance(cells);
+      const score = overlapCount * 1000 - expansion * 8 - distance * 50;
+      if (!best || score > best.score) {
+        best = { ...t, score };
       }
     }
+
+    if (!best) return false;
+    commit(candidate.word, candidate.clue, best.row, best.col, best.dir);
+    return true;
+  }
+
+  // Multiple passes: a word with no valid intersection yet may gain one once
+  // more letters land on the grid from words placed later in the queue.
+  let remaining = words;
+  let progress = true;
+  while (placed.length < targetCount && remaining.length > 0 && progress) {
+    progress = false;
+    const stillRemaining: typeof remaining = [];
+
+    for (const candidate of remaining) {
+      if (placed.length >= targetCount) {
+        stillRemaining.push(candidate);
+        continue;
+      }
+      if (tryPlace(candidate)) {
+        progress = true;
+      } else {
+        stillRemaining.push(candidate);
+      }
+    }
+
+    remaining = stillRemaining;
   }
 
   let minR = CANVAS_SIZE;
