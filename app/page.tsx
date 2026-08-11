@@ -6,6 +6,7 @@ import GameTabs, { type GameId } from "@/components/GameTabs";
 import DevTermo from "@/components/devtermo/DevTermo";
 import CacaDev from "@/components/cacadev/CacaDev";
 import CodeBug from "@/components/codebug/CodeBug";
+import CruzaDev from "@/components/cruzadev/CruzaDev";
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState<GameId>("devtermo");
@@ -24,6 +25,7 @@ export default function Home() {
         {activeGame === "devtermo" && <DevTermo onGameEnd={handleGameEnd} />}
         {activeGame === "cacadev" && <CacaDev onGameEnd={handleGameEnd} />}
         {activeGame === "codebug" && <CodeBug onGameEnd={handleGameEnd} />}
+        {activeGame === "cruzadev" && <CruzaDev onGameEnd={handleGameEnd} />}
       </main>
     </div>
   );

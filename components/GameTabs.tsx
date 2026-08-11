@@ -2,12 +2,13 @@
 
 import { motion } from "framer-motion";
 
-export type GameId = "devtermo" | "cacadev" | "codebug";
+export type GameId = "devtermo" | "cacadev" | "codebug" | "cruzadev";
 
 const GAMES: { id: GameId; label: string; available: boolean }[] = [
   { id: "devtermo", label: "DevTermo", available: true },
   { id: "cacadev", label: "Caça-Dev", available: true },
   { id: "codebug", label: "CodeBug", available: true },
+  { id: "cruzadev", label: "CruzaDev", available: true },
 ];
 
 type GameTabsProps = {
@@ -17,7 +18,7 @@ type GameTabsProps = {
 
 export default function GameTabs({ active, onChange }: GameTabsProps) {
   return (
-    <nav className="mx-auto flex max-w-3xl justify-center gap-1 px-4 py-3">
+    <nav className="mx-auto flex max-w-3xl justify-center gap-1 overflow-x-auto px-4 py-3 scrollbar-none">
       <div className="flex items-center gap-1 rounded-full border border-border bg-bg-card p-1">
         {GAMES.map((game) => {
           const isActive = game.id === active;
