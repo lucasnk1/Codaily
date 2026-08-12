@@ -42,9 +42,15 @@ export default function DevTermo() {
   const [keyStatuses, setKeyStatuses] = useState<Record<string, LetterStatus>>({});
 
   function changeMode(count: WordCount) {
-    if (guesses.length > 0) return;
+    if (count === wordCount) return;
     setWordCount(count);
     setSolvedAt(Array.from({ length: count }, () => null));
+    setGuesses([]);
+    setCurrentGuess("");
+    setStatus("playing");
+    setKeyStatuses({});
+    setShakeRow(null);
+    setShowModal(false);
   }
 
   const submitGuess = useCallback(() => {
@@ -161,12 +167,11 @@ export default function DevTermo() {
           <button
             key={count}
             onClick={() => changeMode(count)}
-            disabled={guesses.length > 0}
             className={[
-              "rounded-full px-3 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed",
+              "rounded-full px-3 py-1 text-xs font-medium transition-colors",
               count === wordCount
                 ? "bg-accent text-white"
-                : "text-text-secondary hover:text-text-primary disabled:hover:text-text-secondary",
+                : "text-text-secondary hover:text-text-primary",
             ].join(" ")}
           >
             {count} {count === 1 ? "palavra" : "palavras"}
