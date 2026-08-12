@@ -37,14 +37,16 @@ export function useDailyLock(gameId: string) {
     setStatus("unlocked");
   }, [gameId]);
 
+  // Persists the result for future visits without flipping the current
+  // session to the "locked" screen — the player who just finished should
+  // still see their completion modal, not the "already played" screen.
+  // The lock only takes effect the next time this hook mounts fresh.
   const complete = useCallback(
     (dailyResult: DailyResult) => {
       const storageKey = `codaily:${gameId}`;
       const todayKey = getUTCDateKey();
       const stored: StoredDaily = { dateKey: todayKey, result: dailyResult };
       window.localStorage.setItem(storageKey, JSON.stringify(stored));
-      setResult(dailyResult);
-      setStatus("locked");
     },
     [gameId]
   );

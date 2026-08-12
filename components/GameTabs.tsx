@@ -1,14 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { GAME_LABELS, type GameId } from "@/lib/games";
 
-export type GameId = "devtermo" | "cacadev" | "codebug" | "cruzadev";
+export type { GameId };
 
 const GAMES: { id: GameId; label: string; available: boolean }[] = [
-  { id: "devtermo", label: "DevTermo", available: true },
-  { id: "cacadev", label: "Caça-Dev", available: true },
-  { id: "codebug", label: "CodeBug", available: true },
-  { id: "cruzadev", label: "CruzaDev", available: true },
+  { id: "devtermo", label: GAME_LABELS.devtermo, available: true },
+  { id: "cacadev", label: GAME_LABELS.cacadev, available: true },
+  { id: "codebug", label: GAME_LABELS.codebug, available: true },
+  { id: "cruzadev", label: GAME_LABELS.cruzadev, available: true },
 ];
 
 type GameTabsProps = {

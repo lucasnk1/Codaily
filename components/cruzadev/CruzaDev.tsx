@@ -7,6 +7,8 @@ import CluesList from "./CluesList";
 import CruzaDevCompletionModal from "./CruzaDevCompletionModal";
 import DailyLockScreen from "@/components/shared/DailyLockScreen";
 import { useDailyLock } from "@/components/shared/useDailyLock";
+import { useActiveAccount } from "@/components/shared/useActiveAccount";
+import { recordGameResult } from "@/lib/account";
 import { getCruzadevPuzzle, getEntryCells, type BuiltEntry, type Direction } from "@/lib/cruzadev";
 
 type CheckMark = "correct" | "wrong" | null;
@@ -22,6 +24,7 @@ function entryKeyOf(e: { row: number; col: number; direction: Direction }) {
 
 export default function CruzaDev() {
   const { status: lockStatus, result, complete } = useDailyLock("cruzadev");
+  const { account, create: createAccount } = useActiveAccount();
   const built = useMemo(() => getCruzadevPuzzle(), []);
 
   const [userGrid, setUserGrid] = useState<string[][]>(() =>
@@ -131,6 +134,7 @@ export default function CruzaDev() {
     if (solved.size === built.entries.length && !completed) {
       setCompleted(true);
       setTimeout(() => setShowModal(true), 500);
+      if (account) recordGameResult("cruzadev", true);
       complete({ won: true, shareText: buildShareText(solved.size, mistakes.size) });
     }
 
@@ -180,6 +184,11 @@ export default function CruzaDev() {
 
   const shareText = buildShareText(solvedEntries.size, mistakeEntries.size);
 
+  function handleCreateAccount(name: string) {
+    createAccount(name);
+    if (completed) recordGameResult("cruzadev", true);
+  }
+
   if (lockStatus === "loading") return null;
   if (lockStatus === "locked" && result) {
     return <DailyLockScreen gameName="CruzaDev" won={result.won} shareText={result.shareText} />;
@@ -224,6 +233,8 @@ export default function CruzaDev() {
         entries={built.entries}
         mistakes={mistakeEntries.size}
         shareText={shareText}
+        showAccountPrompt={!account}
+        onCreateAccount={handleCreateAccount}
         onClose={() => setShowModal(false)}
       />
     </div>

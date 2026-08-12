@@ -7,6 +7,8 @@ import CacaDevWordList from "./CacaDevWordList";
 import CacaDevCompletionModal from "./CacaDevCompletionModal";
 import DailyLockScreen from "@/components/shared/DailyLockScreen";
 import { useDailyLock } from "@/components/shared/useDailyLock";
+import { useActiveAccount } from "@/components/shared/useActiveAccount";
+import { recordGameResult } from "@/lib/account";
 import { generateBoard, getPuzzleOfTheDay } from "@/lib/cacadev";
 
 const BOARD_SIZE = 13;
@@ -19,6 +21,7 @@ function formatTime(totalSeconds: number) {
 
 export default function CacaDev() {
   const { status: lockStatus, result, complete } = useDailyLock("cacadev");
+  const { account, create: createAccount } = useActiveAccount();
   const puzzle = useMemo(() => getPuzzleOfTheDay(), []);
   const board = useMemo(() => generateBoard(puzzle, BOARD_SIZE), [puzzle]);
 
@@ -56,6 +59,7 @@ export default function CacaDev() {
     if (foundWords.size + 1 === allWords.length) {
       setCompleted(true);
       setTimeout(() => setShowModal(true), 500);
+      if (account) recordGameResult("cacadev", true);
       complete({ won: true, shareText: buildShareText() });
     }
   }
@@ -67,6 +71,11 @@ export default function CacaDev() {
   }
 
   const shareText = buildShareText();
+
+  function handleCreateAccount(name: string) {
+    createAccount(name);
+    recordGameResult("cacadev", true);
+  }
 
   if (lockStatus === "loading") return null;
   if (lockStatus === "locked" && result) {
@@ -94,6 +103,8 @@ export default function CacaDev() {
         puzzle={puzzle}
         elapsedSeconds={elapsed}
         shareText={shareText}
+        showAccountPrompt={!account}
+        onCreateAccount={handleCreateAccount}
         onClose={() => setShowModal(false)}
       />
     </div>

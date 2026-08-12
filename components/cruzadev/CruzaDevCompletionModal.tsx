@@ -2,6 +2,7 @@
 
 import ModalShell from "@/components/shared/ModalShell";
 import ShareButton from "@/components/shared/ShareButton";
+import CreateAccountPrompt from "@/components/shared/CreateAccountPrompt";
 import type { BuiltEntry } from "@/lib/cruzadev";
 
 type CruzaDevCompletionModalProps = {
@@ -10,6 +11,8 @@ type CruzaDevCompletionModalProps = {
   entries: BuiltEntry[];
   mistakes: number;
   shareText: string;
+  showAccountPrompt?: boolean;
+  onCreateAccount?: (name: string) => void;
   onClose: () => void;
 };
 
@@ -19,6 +22,8 @@ export default function CruzaDevCompletionModal({
   entries,
   mistakes,
   shareText,
+  showAccountPrompt,
+  onCreateAccount,
   onClose,
 }: CruzaDevCompletionModalProps) {
   return (
@@ -45,6 +50,7 @@ export default function CruzaDevCompletionModal({
       </p>
 
       <ShareButton shareText={shareText} />
+      {showAccountPrompt && onCreateAccount && <CreateAccountPrompt onCreate={onCreateAccount} />}
     </ModalShell>
   );
 }

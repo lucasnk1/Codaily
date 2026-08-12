@@ -2,6 +2,7 @@
 
 import ModalShell from "@/components/shared/ModalShell";
 import ShareButton from "@/components/shared/ShareButton";
+import CreateAccountPrompt from "@/components/shared/CreateAccountPrompt";
 import type { CacaDevPuzzle } from "@/lib/cacadev";
 
 type CacaDevCompletionModalProps = {
@@ -9,6 +10,8 @@ type CacaDevCompletionModalProps = {
   puzzle: CacaDevPuzzle;
   elapsedSeconds: number;
   shareText: string;
+  showAccountPrompt?: boolean;
+  onCreateAccount?: (name: string) => void;
   onClose: () => void;
 };
 
@@ -23,6 +26,8 @@ export default function CacaDevCompletionModal({
   puzzle,
   elapsedSeconds,
   shareText,
+  showAccountPrompt,
+  onCreateAccount,
   onClose,
 }: CacaDevCompletionModalProps) {
   return (
@@ -53,6 +58,7 @@ export default function CacaDevCompletionModal({
       </p>
 
       <ShareButton shareText={shareText} />
+      {showAccountPrompt && onCreateAccount && <CreateAccountPrompt onCreate={onCreateAccount} />}
     </ModalShell>
   );
 }

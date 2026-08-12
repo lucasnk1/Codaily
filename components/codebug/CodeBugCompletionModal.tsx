@@ -2,6 +2,7 @@
 
 import ModalShell from "@/components/shared/ModalShell";
 import ShareButton from "@/components/shared/ShareButton";
+import CreateAccountPrompt from "@/components/shared/CreateAccountPrompt";
 import type { BugSnippet } from "@/lib/codebug";
 
 type CodeBugCompletionModalProps = {
@@ -11,6 +12,8 @@ type CodeBugCompletionModalProps = {
   attemptsUsed: number;
   maxAttempts: number;
   shareText: string;
+  showAccountPrompt?: boolean;
+  onCreateAccount?: (name: string) => void;
   onClose: () => void;
 };
 
@@ -21,6 +24,8 @@ export default function CodeBugCompletionModal({
   attemptsUsed,
   maxAttempts,
   shareText,
+  showAccountPrompt,
+  onCreateAccount,
   onClose,
 }: CodeBugCompletionModalProps) {
   return (
@@ -58,6 +63,7 @@ export default function CodeBugCompletionModal({
       </p>
 
       <ShareButton shareText={shareText} />
+      {showAccountPrompt && onCreateAccount && <CreateAccountPrompt onCreate={onCreateAccount} />}
     </ModalShell>
   );
 }

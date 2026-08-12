@@ -13,7 +13,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      <Header onNavigateGame={setActiveGame} />
       <GameTabs active={activeGame} onChange={setActiveGame} />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4">

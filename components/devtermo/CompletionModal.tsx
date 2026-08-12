@@ -2,6 +2,7 @@
 
 import ModalShell from "@/components/shared/ModalShell";
 import ShareButton from "@/components/shared/ShareButton";
+import CreateAccountPrompt from "@/components/shared/CreateAccountPrompt";
 import type { WordEntry } from "@/lib/words";
 
 type CompletionModalProps = {
@@ -11,6 +12,8 @@ type CompletionModalProps = {
   attemptsUsed: number;
   maxAttempts: number;
   shareText: string;
+  showAccountPrompt?: boolean;
+  onCreateAccount?: (name: string) => void;
   onClose: () => void;
 };
 
@@ -21,6 +24,8 @@ export default function CompletionModal({
   attemptsUsed,
   maxAttempts,
   shareText,
+  showAccountPrompt,
+  onCreateAccount,
   onClose,
 }: CompletionModalProps) {
   return (
@@ -56,6 +61,7 @@ export default function CompletionModal({
       </p>
 
       <ShareButton shareText={shareText} />
+      {showAccountPrompt && onCreateAccount && <CreateAccountPrompt onCreate={onCreateAccount} />}
     </ModalShell>
   );
 }
