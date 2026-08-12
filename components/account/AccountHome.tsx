@@ -1,23 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Flame } from "lucide-react";
-import { getStats, type StatsByGame } from "@/lib/account";
+import type { StatsByGame } from "@/lib/account";
 import { ALL_GAME_IDS, GAME_LABELS, type GameId } from "@/lib/games";
 
 type AccountHomeProps = {
-  accountId: string;
+  stats: StatsByGame | null;
   onNavigateGame: (id: GameId) => void;
 };
 
-export default function AccountHome({ accountId, onNavigateGame }: AccountHomeProps) {
-  const [stats, setStats] = useState<StatsByGame | null>(null);
-
-  useEffect(() => {
-    setStats(getStats(accountId));
-  }, [accountId]);
-
-  if (!stats) return null;
+export default function AccountHome({ stats, onNavigateGame }: AccountHomeProps) {
+  if (!stats) {
+    return <p className="py-6 text-center text-sm text-text-muted">Carregando…</p>;
+  }
 
   return (
     <div className="space-y-2">

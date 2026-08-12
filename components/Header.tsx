@@ -4,11 +4,15 @@ import { useState } from "react";
 import { User } from "lucide-react";
 import AccountPanel from "@/components/account/AccountPanel";
 import { useActiveAccount } from "@/components/shared/useActiveAccount";
+import { useSupabaseAuth } from "@/components/shared/useSupabaseAuth";
 import type { GameId } from "@/lib/games";
 
 export default function Header({ onNavigateGame }: { onNavigateGame: (id: GameId) => void }) {
   const [panelOpen, setPanelOpen] = useState(false);
   const { account } = useActiveAccount();
+  const { profile } = useSupabaseAuth();
+
+  const displayName = profile?.name ?? account?.name ?? null;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-bg/85 backdrop-blur-md">
@@ -22,9 +26,9 @@ export default function Header({ onNavigateGame }: { onNavigateGame: (id: GameId
           aria-label="Conta"
           className="absolute right-4 flex h-8 w-8 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-bg-card hover:text-text-primary"
         >
-          {account ? (
+          {displayName ? (
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/20 font-mono text-xs font-semibold text-accent">
-              {account.name.charAt(0).toUpperCase()}
+              {displayName.charAt(0).toUpperCase()}
             </span>
           ) : (
             <User size={18} />

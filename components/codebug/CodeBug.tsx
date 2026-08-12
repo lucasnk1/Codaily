@@ -6,7 +6,7 @@ import AttemptsIndicator from "./AttemptsIndicator";
 import CodeBugCompletionModal from "./CodeBugCompletionModal";
 import DailyLockScreen from "@/components/shared/DailyLockScreen";
 import { useDailyLock } from "@/components/shared/useDailyLock";
-import { useActiveAccount } from "@/components/shared/useActiveAccount";
+import { useGameRecorder } from "@/components/shared/useGameRecorder";
 import { recordGameResult } from "@/lib/account";
 import { getSnippetOfTheDay } from "@/lib/codebug";
 import { buildShareGrid, type EvaluatedLetter } from "@/lib/utils";
@@ -17,7 +17,7 @@ type GameStatus = "playing" | "won" | "lost";
 
 export default function CodeBug() {
   const { status: lockStatus, result, complete } = useDailyLock("codebug");
-  const { account, create: createAccount } = useActiveAccount();
+  const { hasIdentity, record, createLocalAccount } = useGameRecorder("codebug");
   const snippet = useMemo(() => getSnippetOfTheDay(), []);
   const [wrongLines, setWrongLines] = useState<number[]>([]);
   const [status, setStatus] = useState<GameStatus>("playing");
@@ -46,7 +46,7 @@ export default function CodeBug() {
     if (index === snippet.buggyLine) {
       setStatus("won");
       setTimeout(() => setShowModal(true), 700);
-      if (account) recordGameResult("codebug", true);
+      record(true);
       complete({ won: true, shareText: buildShareGrid(rows, wrongLines.length + 1, MAX_ATTEMPTS).replace("DevTermo", "CodeBug") });
       return;
     }
@@ -57,14 +57,14 @@ export default function CodeBug() {
     if (nextWrong.length >= MAX_ATTEMPTS) {
       setStatus("lost");
       setTimeout(() => setShowModal(true), 700);
-      if (account) recordGameResult("codebug", false);
+      record(false);
       const lostRows: EvaluatedLetter[][] = nextWrong.map(() => [{ letter: "", status: "absent" }]);
       complete({ won: false, shareText: buildShareGrid(lostRows, nextWrong.length, MAX_ATTEMPTS).replace("DevTermo", "CodeBug") });
     }
   }
 
   function handleCreateAccount(name: string) {
-    createAccount(name);
+    createLocalAccount(name);
     recordGameResult("codebug", status === "won");
   }
 
@@ -100,7 +100,7 @@ export default function CodeBug() {
         attemptsUsed={attemptsUsed}
         maxAttempts={MAX_ATTEMPTS}
         shareText={shareText}
-        showAccountPrompt={!account}
+        showAccountPrompt={!hasIdentity}
         onCreateAccount={handleCreateAccount}
         onClose={() => setShowModal(false)}
       />

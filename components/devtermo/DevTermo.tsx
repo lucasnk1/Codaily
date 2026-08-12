@@ -6,7 +6,7 @@ import Keyboard from "./Keyboard";
 import CompletionModal from "./CompletionModal";
 import DailyLockScreen from "@/components/shared/DailyLockScreen";
 import { useDailyLock } from "@/components/shared/useDailyLock";
-import { useActiveAccount } from "@/components/shared/useActiveAccount";
+import { useGameRecorder } from "@/components/shared/useGameRecorder";
 import { recordGameResult } from "@/lib/account";
 import { getWordsOfTheDay } from "@/lib/words";
 import {
@@ -28,7 +28,7 @@ function maxAttemptsFor(wordCount: WordCount) {
 
 export default function DevTermo() {
   const { status: lockStatus, result, complete } = useDailyLock("devtermo");
-  const { account, create: createAccount } = useActiveAccount();
+  const { hasIdentity, record, createLocalAccount } = useGameRecorder("devtermo");
   const [wordCount, setWordCount] = useState<WordCount>(1);
   const words = useMemo(() => getWordsOfTheDay(wordCount), [wordCount]);
   const maxAttempts = maxAttemptsFor(wordCount);
@@ -145,13 +145,13 @@ export default function DevTermo() {
 
   useEffect(() => {
     if (status === "playing") return;
-    if (account) recordGameResult("devtermo", status === "won");
+    record(status === "won");
     complete({ won: status === "won", shareText });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   function handleCreateAccount(name: string) {
-    createAccount(name);
+    createLocalAccount(name);
     recordGameResult("devtermo", status === "won");
   }
 
@@ -227,7 +227,7 @@ export default function DevTermo() {
         attemptsUsed={guesses.length}
         maxAttempts={maxAttempts}
         shareText={shareText}
-        showAccountPrompt={!account}
+        showAccountPrompt={!hasIdentity}
         onCreateAccount={handleCreateAccount}
         onClose={() => setShowModal(false)}
       />
