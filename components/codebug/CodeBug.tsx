@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import CodeBlock from "./CodeBlock";
 import AttemptsIndicator from "./AttemptsIndicator";
 import CodeBugCompletionModal from "./CodeBugCompletionModal";
+import DailyLockScreen from "@/components/shared/DailyLockScreen";
+import { useDailyLock } from "@/components/shared/useDailyLock";
 import { getSnippetOfTheDay } from "@/lib/codebug";
 import { buildShareGrid, type EvaluatedLetter } from "@/lib/utils";
 
@@ -11,31 +13,12 @@ const MAX_ATTEMPTS = 3;
 
 type GameStatus = "playing" | "won" | "lost";
 
-export default function CodeBug({ onGameEnd }: { onGameEnd?: (won: boolean) => void }) {
+export default function CodeBug() {
+  const { status: lockStatus, result, complete } = useDailyLock("codebug");
   const snippet = useMemo(() => getSnippetOfTheDay(), []);
   const [wrongLines, setWrongLines] = useState<number[]>([]);
   const [status, setStatus] = useState<GameStatus>("playing");
   const [showModal, setShowModal] = useState(false);
-
-  function handleLineClick(index: number) {
-    if (status !== "playing") return;
-
-    if (index === snippet.buggyLine) {
-      setStatus("won");
-      setTimeout(() => setShowModal(true), 700);
-      onGameEnd?.(true);
-      return;
-    }
-
-    const nextWrong = [...wrongLines, index];
-    setWrongLines(nextWrong);
-
-    if (nextWrong.length >= MAX_ATTEMPTS) {
-      setStatus("lost");
-      setTimeout(() => setShowModal(true), 700);
-      onGameEnd?.(false);
-    }
-  }
 
   const attemptsUsed = status === "won" ? wrongLines.length + 1 : wrongLines.length;
 
@@ -53,6 +36,32 @@ export default function CodeBug({ onGameEnd }: { onGameEnd?: (won: boolean) => v
     "DevTermo",
     "CodeBug"
   );
+
+  function handleLineClick(index: number) {
+    if (status !== "playing") return;
+
+    if (index === snippet.buggyLine) {
+      setStatus("won");
+      setTimeout(() => setShowModal(true), 700);
+      complete({ won: true, shareText: buildShareGrid(rows, wrongLines.length + 1, MAX_ATTEMPTS).replace("DevTermo", "CodeBug") });
+      return;
+    }
+
+    const nextWrong = [...wrongLines, index];
+    setWrongLines(nextWrong);
+
+    if (nextWrong.length >= MAX_ATTEMPTS) {
+      setStatus("lost");
+      setTimeout(() => setShowModal(true), 700);
+      const lostRows: EvaluatedLetter[][] = nextWrong.map(() => [{ letter: "", status: "absent" }]);
+      complete({ won: false, shareText: buildShareGrid(lostRows, nextWrong.length, MAX_ATTEMPTS).replace("DevTermo", "CodeBug") });
+    }
+  }
+
+  if (lockStatus === "loading") return null;
+  if (lockStatus === "locked" && result) {
+    return <DailyLockScreen gameName="CodeBug" won={result.won} shareText={result.shareText} />;
+  }
 
   return (
     <div className="flex flex-1 flex-col items-center gap-4 py-6">

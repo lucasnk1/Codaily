@@ -1,3 +1,5 @@
+import { mulberry32, seededShuffle } from "./utils";
+
 export type WordEntry = {
   word: string;
   category: "Dev" | "Data Science" | "IA";
@@ -113,4 +115,11 @@ export function getWordOfTheDay(date = new Date()): WordEntry {
   const seed = getDailySeed(date);
   const idx = dayIndex(seed, WORD_BANK.length);
   return WORD_BANK[idx];
+}
+
+export function getWordsOfTheDay(count: number, date = new Date()): WordEntry[] {
+  const seed = getDailySeed(date);
+  const rand = mulberry32(seed + count * 7919);
+  const shuffled = seededShuffle(WORD_BANK, rand);
+  return shuffled.slice(0, count);
 }

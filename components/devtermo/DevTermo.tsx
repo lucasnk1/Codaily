@@ -4,53 +4,77 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import DevTermoGrid, { type Cell } from "./DevTermoGrid";
 import Keyboard from "./Keyboard";
 import CompletionModal from "./CompletionModal";
-import { getWordOfTheDay } from "@/lib/words";
+import DailyLockScreen from "@/components/shared/DailyLockScreen";
+import { useDailyLock } from "@/components/shared/useDailyLock";
+import { getWordsOfTheDay } from "@/lib/words";
 import {
-  buildShareGrid,
   evaluateGuess,
   mergeKeyboardStatus,
   type EvaluatedLetter,
   type LetterStatus,
 } from "@/lib/utils";
 
-const MAX_ATTEMPTS = 6;
 const WORD_LENGTH = 5;
+const MODE_OPTIONS = [1, 2, 3] as const;
+type WordCount = (typeof MODE_OPTIONS)[number];
 
 type GameStatus = "playing" | "won" | "lost";
 
-export default function DevTermo({ onGameEnd }: { onGameEnd?: (won: boolean) => void }) {
-  const wordEntry = useMemo(() => getWordOfTheDay(), []);
-  const target = wordEntry.word;
+function maxAttemptsFor(wordCount: WordCount) {
+  return 5 + wordCount;
+}
 
-  const [guesses, setGuesses] = useState<EvaluatedLetter[][]>([]);
+export default function DevTermo() {
+  const { status: lockStatus, result, complete } = useDailyLock("devtermo");
+  const [wordCount, setWordCount] = useState<WordCount>(1);
+  const words = useMemo(() => getWordsOfTheDay(wordCount), [wordCount]);
+  const maxAttempts = maxAttemptsFor(wordCount);
+
+  const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState("");
   const [status, setStatus] = useState<GameStatus>("playing");
+  const [solvedAt, setSolvedAt] = useState<(number | null)[]>(() => words.map(() => null));
   const [shakeRow, setShakeRow] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [keyStatuses, setKeyStatuses] = useState<Record<string, LetterStatus>>({});
 
+  function changeMode(count: WordCount) {
+    if (guesses.length > 0) return;
+    setWordCount(count);
+    setSolvedAt(Array.from({ length: count }, () => null));
+  }
+
   const submitGuess = useCallback(() => {
     if (currentGuess.length !== WORD_LENGTH || status !== "playing") return;
 
-    const evaluated = evaluateGuess(currentGuess, target);
-    const nextGuesses = [...guesses, evaluated];
+    const guessIndex = guesses.length;
+    const nextGuesses = [...guesses, currentGuess];
     setGuesses(nextGuesses);
-    setKeyStatuses((prev) => mergeKeyboardStatus(prev, evaluated));
+
+    let mergedStatuses = keyStatuses;
+    const nextSolvedAt = [...solvedAt];
+    words.forEach((w, i) => {
+      const evaluated = evaluateGuess(currentGuess, w.word);
+      mergedStatuses = mergeKeyboardStatus(mergedStatuses, evaluated);
+      if (nextSolvedAt[i] === null && currentGuess.toUpperCase() === w.word) {
+        nextSolvedAt[i] = guessIndex;
+      }
+    });
+    setKeyStatuses(mergedStatuses);
+    setSolvedAt(nextSolvedAt);
     setCurrentGuess("");
 
-    const isWin = currentGuess.toUpperCase() === target;
-    const isLastAttempt = nextGuesses.length === MAX_ATTEMPTS;
+    const allSolved = nextSolvedAt.every((s) => s !== null);
+    const outOfAttempts = nextGuesses.length >= maxAttempts;
 
-    if (isWin) {
+    if (allSolved) {
       setStatus("won");
       setTimeout(() => setShowModal(true), 900);
-      onGameEnd?.(true);
-    } else if (isLastAttempt) {
+    } else if (outOfAttempts) {
       setStatus("lost");
       setTimeout(() => setShowModal(true), 900);
-      onGameEnd?.(false);
     }
-  }, [currentGuess, guesses, status, target, onGameEnd]);
+  }, [currentGuess, guesses, status, words, keyStatuses, solvedAt, maxAttempts]);
 
   const handleKeyPress = useCallback(
     (key: string) => {
@@ -88,32 +112,91 @@ export default function DevTermo({ onGameEnd }: { onGameEnd?: (won: boolean) => 
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [handleKeyPress]);
 
-  const rows: Cell[][] = useMemo(() => {
-    const completed: Cell[][] = guesses.map((row) => row);
-    if (status === "playing" && completed.length < MAX_ATTEMPTS) {
-      const typingRow: Cell[] = Array.from({ length: WORD_LENGTH }, (_, i) => ({
-        letter: currentGuess[i] ?? "",
-        status: "empty" as LetterStatus,
-      }));
-      return [...completed, typingRow];
-    }
-    return completed;
-  }, [guesses, currentGuess, status]);
+  function boardRows(target: string, solvedIndex: number | null): Cell[][] {
+    const limit = solvedIndex !== null ? solvedIndex + 1 : guesses.length;
+    return guesses.slice(0, limit).map((g) => evaluateGuess(g, target));
+  }
 
-  const shareText = useMemo(
-    () => buildShareGrid(guesses, guesses.length, MAX_ATTEMPTS),
-    [guesses]
-  );
+  const shareText = useMemo(() => {
+    const emojiFor: Record<LetterStatus, string> = {
+      correct: "🟩",
+      present: "🟨",
+      absent: "⬛",
+      typing: "⬜",
+      empty: "⬜",
+    };
+    const boards = words.map((w, i) => {
+      const rows = boardRows(w.word, solvedAt[i]);
+      return rows.map((row) => (row as EvaluatedLetter[]).map((c) => emojiFor[c.status]).join("")).join("\n");
+    });
+    const label = wordCount === 1 ? "DevTermo" : `DevTermo (${wordCount} palavras)`;
+    return `Codaily — ${label}\n${guesses.length}/${maxAttempts}\n\n${boards.join("\n\n")}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [words, solvedAt, guesses, maxAttempts, wordCount]);
+
+  useEffect(() => {
+    if (status === "playing") return;
+    complete({ won: status === "won", shareText });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  if (lockStatus === "loading") return null;
+  if (lockStatus === "locked" && result) {
+    return <DailyLockScreen gameName="DevTermo" won={result.won} shareText={result.shareText} />;
+  }
 
   return (
     <div className="flex flex-1 flex-col">
-      <DevTermoGrid
-        rows={rows}
-        maxAttempts={MAX_ATTEMPTS}
-        wordLength={WORD_LENGTH}
-        currentRow={guesses.length}
-        shakeRow={shakeRow}
-      />
+      <div className="mx-auto flex items-center gap-1 rounded-full border border-border bg-bg-card p-1">
+        {MODE_OPTIONS.map((count) => (
+          <button
+            key={count}
+            onClick={() => changeMode(count)}
+            disabled={guesses.length > 0}
+            className={[
+              "rounded-full px-3 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed",
+              count === wordCount
+                ? "bg-accent text-white"
+                : "text-text-secondary hover:text-text-primary disabled:hover:text-text-secondary",
+            ].join(" ")}
+          >
+            {count} {count === 1 ? "palavra" : "palavras"}
+          </button>
+        ))}
+      </div>
+
+      <div
+        className={[
+          "mx-auto grid w-full gap-6 py-4",
+          wordCount === 1 ? "grid-cols-1" : wordCount === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-3",
+        ].join(" ")}
+      >
+        {words.map((w, i) => {
+          const solvedIndex = solvedAt[i];
+          const evaluatedRows = boardRows(w.word, solvedIndex);
+          const showTyping = solvedIndex === null && status === "playing" && evaluatedRows.length < maxAttempts;
+          const rows: Cell[][] = showTyping
+            ? [
+                ...evaluatedRows,
+                Array.from({ length: WORD_LENGTH }, (_, ci) => ({
+                  letter: currentGuess[ci] ?? "",
+                  status: "empty" as LetterStatus,
+                })),
+              ]
+            : evaluatedRows;
+
+          return (
+            <DevTermoGrid
+              key={i}
+              rows={rows}
+              maxAttempts={maxAttempts}
+              wordLength={WORD_LENGTH}
+              currentRow={evaluatedRows.length}
+              shakeRow={shakeRow}
+            />
+          );
+        })}
+      </div>
 
       <div className="mt-auto">
         <Keyboard
@@ -126,9 +209,9 @@ export default function DevTermo({ onGameEnd }: { onGameEnd?: (won: boolean) => 
       <CompletionModal
         open={showModal}
         won={status === "won"}
-        word={wordEntry}
+        words={words}
         attemptsUsed={guesses.length}
-        maxAttempts={MAX_ATTEMPTS}
+        maxAttempts={maxAttempts}
         shareText={shareText}
         onClose={() => setShowModal(false)}
       />

@@ -1,10 +1,12 @@
 "use client";
 
+import { Check } from "lucide-react";
 import type { BuiltEntry } from "@/lib/cruzadev";
 
 type CluesListProps = {
   entries: BuiltEntry[];
   activeEntryKey: string | null;
+  solvedKeys: Set<string>;
   onSelect: (entry: BuiltEntry) => void;
 };
 
@@ -12,7 +14,7 @@ function entryKey(e: BuiltEntry) {
   return `${e.row}-${e.col}-${e.direction}`;
 }
 
-export default function CluesList({ entries, activeEntryKey, onSelect }: CluesListProps) {
+export default function CluesList({ entries, activeEntryKey, solvedKeys, onSelect }: CluesListProps) {
   const across = entries.filter((e) => e.direction === "across");
   const down = entries.filter((e) => e.direction === "down");
 
@@ -24,21 +26,30 @@ export default function CluesList({ entries, activeEntryKey, onSelect }: CluesLi
         </h3>
         <ul className="space-y-0.5">
           {group.map((entry) => {
-            const isActive = entryKey(entry) === activeEntryKey;
+            const key = entryKey(entry);
+            const isActive = key === activeEntryKey;
+            const isSolved = solvedKeys.has(key);
             return (
-              <li key={entryKey(entry)}>
+              <li key={key}>
                 <button
                   onClick={() => onSelect(entry)}
+                  disabled={isSolved}
                   className={[
-                    "w-full rounded-md px-1.5 py-1 text-left text-xs leading-snug transition-colors sm:text-[13px]",
-                    isActive
+                    "flex w-full items-start gap-1 rounded-md px-1.5 py-1 text-left text-xs leading-snug transition-colors sm:text-[13px]",
+                    isSolved
+                      ? "text-feedback-correct line-through decoration-2"
+                      : isActive
                       ? "bg-accent/15 text-text-primary"
                       : "text-text-secondary hover:bg-bg-subtle",
                   ].join(" ")}
                 >
-                  <span className="mr-1 font-mono font-semibold text-text-muted">
-                    {entry.number}.
-                  </span>
+                  {isSolved ? (
+                    <Check size={12} className="mt-0.5 shrink-0" />
+                  ) : (
+                    <span className="mr-1 font-mono font-semibold text-text-muted">
+                      {entry.number}.
+                    </span>
+                  )}
                   {entry.clue}
                 </button>
               </li>

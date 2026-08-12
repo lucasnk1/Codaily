@@ -7,7 +7,7 @@ import type { WordEntry } from "@/lib/words";
 type CompletionModalProps = {
   open: boolean;
   won: boolean;
-  word: WordEntry;
+  words: WordEntry[];
   attemptsUsed: number;
   maxAttempts: number;
   shareText: string;
@@ -17,7 +17,7 @@ type CompletionModalProps = {
 export default function CompletionModal({
   open,
   won,
-  word,
+  words,
   attemptsUsed,
   maxAttempts,
   shareText,
@@ -33,14 +33,20 @@ export default function CompletionModal({
         >
           {won ? "Resolvido" : "Não foi dessa vez"}
         </p>
-        <h2 className="mt-1 font-mono text-2xl font-bold text-text-primary">{word.word}</h2>
+        <h2 className="mt-1 font-mono text-2xl font-bold text-text-primary">
+          {words.map((w) => w.word).join(" · ")}
+        </h2>
       </div>
 
-      <div className="mb-4 rounded-lg border border-border bg-bg-subtle p-3">
-        <span className="mb-1 inline-block rounded-full border border-border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-secondary">
-          {word.category}
-        </span>
-        <p className="text-sm leading-relaxed text-text-secondary">{word.explanation}</p>
+      <div className="mb-4 max-h-64 space-y-3 overflow-y-auto rounded-lg border border-border bg-bg-subtle p-3 scrollbar-none">
+        {words.map((word) => (
+          <div key={word.word}>
+            <span className="mb-1 inline-block rounded-full border border-border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-secondary">
+              {word.category}
+            </span>
+            <p className="text-sm leading-relaxed text-text-secondary">{word.explanation}</p>
+          </div>
+        ))}
       </div>
 
       <p className="mb-4 text-sm text-text-muted">

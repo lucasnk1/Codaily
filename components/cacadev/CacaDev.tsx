@@ -5,7 +5,11 @@ import { Timer } from "lucide-react";
 import CacaDevBoard from "./CacaDevBoard";
 import CacaDevWordList from "./CacaDevWordList";
 import CacaDevCompletionModal from "./CacaDevCompletionModal";
+import DailyLockScreen from "@/components/shared/DailyLockScreen";
+import { useDailyLock } from "@/components/shared/useDailyLock";
 import { generateBoard, getPuzzleOfTheDay } from "@/lib/cacadev";
+
+const BOARD_SIZE = 13;
 
 function formatTime(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60);
@@ -13,9 +17,10 @@ function formatTime(totalSeconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export default function CacaDev({ onGameEnd }: { onGameEnd?: (won: boolean) => void }) {
+export default function CacaDev() {
+  const { status: lockStatus, result, complete } = useDailyLock("cacadev");
   const puzzle = useMemo(() => getPuzzleOfTheDay(), []);
-  const board = useMemo(() => generateBoard(puzzle), [puzzle]);
+  const board = useMemo(() => generateBoard(puzzle, BOARD_SIZE), [puzzle]);
 
   const allWords = useMemo(() => puzzle.words.map((w) => w.word), [puzzle]);
   const [foundWords, setFoundWords] = useState<Set<string>>(new Set());
@@ -27,10 +32,10 @@ export default function CacaDev({ onGameEnd }: { onGameEnd?: (won: boolean) => v
   const remainingWords = allWords.filter((w) => !foundWords.has(w));
 
   useEffect(() => {
-    if (completed) return;
+    if (completed || lockStatus !== "unlocked") return;
     const interval = setInterval(() => setElapsed((s) => s + 1), 1000);
     return () => clearInterval(interval);
-  }, [completed]);
+  }, [completed, lockStatus]);
 
   function handleWordFound(word: string) {
     setFoundWords((prev) => {
@@ -51,13 +56,22 @@ export default function CacaDev({ onGameEnd }: { onGameEnd?: (won: boolean) => v
     if (foundWords.size + 1 === allWords.length) {
       setCompleted(true);
       setTimeout(() => setShowModal(true), 500);
-      onGameEnd?.(true);
+      complete({ won: true, shareText: buildShareText() });
     }
   }
 
-  const shareText = `Codaily — Caça-Dev\n${puzzle.category}\n${allWords.length}/${allWords.length} palavras em ${formatTime(
-    elapsed
-  )}`;
+  function buildShareText() {
+    return `Codaily — Caça-Dev\n${puzzle.category}\n${allWords.length}/${allWords.length} palavras em ${formatTime(
+      elapsed
+    )}`;
+  }
+
+  const shareText = buildShareText();
+
+  if (lockStatus === "loading") return null;
+  if (lockStatus === "locked" && result) {
+    return <DailyLockScreen gameName="Caça-Dev" won={result.won} shareText={result.shareText} />;
+  }
 
   return (
     <div className="flex flex-1 flex-col items-center">

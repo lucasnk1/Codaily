@@ -11,6 +11,7 @@ type CruzaDevGridProps = {
   checkGrid: CheckMark[][];
   activeCell: [number, number] | null;
   activeCells: Set<string>;
+  lockedCells: Set<string>;
   disabled?: boolean;
   onCellFocus: (r: number, c: number) => void;
   onCellChange: (r: number, c: number, value: string) => void;
@@ -23,6 +24,7 @@ export default function CruzaDevGrid({
   checkGrid,
   activeCell,
   activeCells,
+  lockedCells,
   disabled,
   onCellFocus,
   onCellChange,
@@ -60,7 +62,8 @@ export default function CruzaDevGrid({
           const key = `${r}-${c}`;
           const isActive = activeCell?.[0] === r && activeCell?.[1] === c;
           const inActiveWord = activeCells.has(key);
-          const mark = checkGrid[r][c];
+          const isLocked = lockedCells.has(key);
+          const mark = isLocked ? "correct" : checkGrid[r][c];
 
           return (
             <div key={key} className="relative aspect-square">
@@ -78,7 +81,7 @@ export default function CruzaDevGrid({
                 data-c={c}
                 value={userGrid[r][c]}
                 maxLength={1}
-                disabled={disabled}
+                disabled={disabled || isLocked}
                 onFocus={() => onCellFocus(r, c)}
                 onChange={(e) => {
                   const v = e.target.value.replace(/[^a-zA-Z]/g, "").toUpperCase().slice(-1);

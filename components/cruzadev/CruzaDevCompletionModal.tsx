@@ -8,7 +8,7 @@ type CruzaDevCompletionModalProps = {
   open: boolean;
   category: string;
   entries: BuiltEntry[];
-  attempts: number;
+  mistakes: number;
   shareText: string;
   onClose: () => void;
 };
@@ -17,7 +17,7 @@ export default function CruzaDevCompletionModal({
   open,
   category,
   entries,
-  attempts,
+  mistakes,
   shareText,
   onClose,
 }: CruzaDevCompletionModalProps) {
@@ -40,8 +40,8 @@ export default function CruzaDevCompletionModal({
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        Você completou as {entries.length} palavras em {attempts}{" "}
-        {attempts === 1 ? "verificação" : "verificações"}.
+        Você completou as {entries.length} palavras{" "}
+        {mistakes === 0 ? "sem errar nenhuma." : `com ${mistakes} erro${mistakes === 1 ? "" : "s"}.`}
       </p>
 
       <ShareButton shareText={shareText} />
