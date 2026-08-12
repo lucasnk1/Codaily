@@ -118,8 +118,13 @@ export function getWordOfTheDay(date = new Date()): WordEntry {
 }
 
 export function getWordsOfTheDay(count: number, date = new Date()): WordEntry[] {
+  if (count === 1) return [getWordOfTheDay(date)];
+
+  const soloWord = getWordOfTheDay(date);
+  const pool = WORD_BANK.filter((w) => w.word !== soloWord.word);
+
   const seed = getDailySeed(date);
   const rand = mulberry32(seed + count * 7919);
-  const shuffled = seededShuffle(WORD_BANK, rand);
+  const shuffled = seededShuffle(pool, rand);
   return shuffled.slice(0, count);
 }
