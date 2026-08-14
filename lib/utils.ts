@@ -76,6 +76,7 @@ export function mergeKeyboardStatus(
   return next;
 }
 
+/** Renders guess rows as an emoji grid (no header) — compose the message with buildShareMessage. */
 export function buildShareGrid(
   rows: EvaluatedLetter[][],
   attemptsUsed: number,
@@ -91,5 +92,5 @@ export function buildShareGrid(
   const grid = rows
     .map((row) => row.map((cell) => emojiFor[cell.status]).join(""))
     .join("\n");
-  return `Codaily — DevTermo ${attemptsUsed}/${maxAttempts}\n\n${grid}`;
+  return `${attemptsUsed}/${maxAttempts}\n\n${grid}`;
 }

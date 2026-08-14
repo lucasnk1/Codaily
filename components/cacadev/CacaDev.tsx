@@ -10,6 +10,7 @@ import { useDailyLock } from "@/components/shared/useDailyLock";
 import { useGameRecorder } from "@/components/shared/useGameRecorder";
 import { recordGameResult } from "@/lib/account";
 import { generateBoard, getPuzzleOfTheDay } from "@/lib/cacadev";
+import { buildShareMessage } from "@/lib/share";
 
 const BOARD_SIZE = 13;
 
@@ -65,9 +66,10 @@ export default function CacaDev() {
   }
 
   function buildShareText() {
-    return `Codaily — Caça-Dev\n${puzzle.category}\n${allWords.length}/${allWords.length} palavras em ${formatTime(
-      elapsed
-    )}`;
+    return buildShareMessage(
+      "Caça-Dev",
+      `${puzzle.category}\n${allWords.length}/${allWords.length} palavras em ${formatTime(elapsed)}`
+    );
   }
 
   const shareText = buildShareText();

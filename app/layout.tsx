@@ -14,10 +14,28 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const title = "Codaily — </> Jogos diários para devs";
+const description =
+  "Hub de jogos diários de lógica e palavras para Programação, Ciência de Dados e IA: DevTermo, Caça-Dev, CodeBug e CruzaDev.";
+const siteUrl = "https://codaily-phi.vercel.app";
+
 export const metadata: Metadata = {
-  title: "Codaily — </> Jogos diários para devs",
-  description:
-    "Hub de jogos diários de lógica e palavras para Programação, Ciência de Dados e IA.",
+  metadataBase: new URL(siteUrl),
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    url: siteUrl,
+    siteName: "Codaily",
+    locale: "pt_BR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+  },
 };
 
 export default function RootLayout({

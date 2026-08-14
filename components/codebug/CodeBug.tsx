@@ -9,6 +9,7 @@ import { useDailyLock } from "@/components/shared/useDailyLock";
 import { useGameRecorder } from "@/components/shared/useGameRecorder";
 import { recordGameResult } from "@/lib/account";
 import { getSnippetOfTheDay } from "@/lib/codebug";
+import { buildShareMessage } from "@/lib/share";
 import { buildShareGrid, type EvaluatedLetter } from "@/lib/utils";
 
 const MAX_ATTEMPTS = 3;
@@ -35,10 +36,7 @@ export default function CodeBug() {
     return wrongRows;
   }, [wrongLines, status]);
 
-  const shareText = buildShareGrid(rows, attemptsUsed, MAX_ATTEMPTS).replace(
-    "DevTermo",
-    "CodeBug"
-  );
+  const shareText = buildShareMessage("CodeBug", buildShareGrid(rows, attemptsUsed, MAX_ATTEMPTS));
 
   function handleLineClick(index: number) {
     if (status !== "playing") return;
@@ -47,7 +45,13 @@ export default function CodeBug() {
       setStatus("won");
       setTimeout(() => setShowModal(true), 700);
       record(true);
-      complete({ won: true, shareText: buildShareGrid(rows, wrongLines.length + 1, MAX_ATTEMPTS).replace("DevTermo", "CodeBug") });
+      complete({
+        won: true,
+        shareText: buildShareMessage(
+          "CodeBug",
+          buildShareGrid(rows, wrongLines.length + 1, MAX_ATTEMPTS)
+        ),
+      });
       return;
     }
 
@@ -59,7 +63,10 @@ export default function CodeBug() {
       setTimeout(() => setShowModal(true), 700);
       record(false);
       const lostRows: EvaluatedLetter[][] = nextWrong.map(() => [{ letter: "", status: "absent" }]);
-      complete({ won: false, shareText: buildShareGrid(lostRows, nextWrong.length, MAX_ATTEMPTS).replace("DevTermo", "CodeBug") });
+      complete({
+        won: false,
+        shareText: buildShareMessage("CodeBug", buildShareGrid(lostRows, nextWrong.length, MAX_ATTEMPTS)),
+      });
     }
   }
 

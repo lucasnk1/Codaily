@@ -29,7 +29,7 @@ function normalizeSupabaseStats(
   }, {} as StatsByGame);
 }
 
-type PanelTab = "home" | "leaderboard";
+type PanelTab = "profile" | "leaderboard";
 
 type AccountPanelProps = {
   open: boolean;
@@ -40,7 +40,7 @@ type AccountPanelProps = {
 export default function AccountPanel({ open, onClose, onNavigateGame }: AccountPanelProps) {
   const { account, create, logout } = useActiveAccount();
   const { user, profile, refreshProfile } = useSupabaseAuth();
-  const [tab, setTab] = useState<PanelTab>("home");
+  const [tab, setTab] = useState<PanelTab>("profile");
   const [mounted, setMounted] = useState(false);
   const [stats, setStats] = useState<StatsByGame | null>(null);
 
@@ -153,8 +153,8 @@ export default function AccountPanel({ open, onClose, onNavigateGame }: AccountP
         )}
 
         <div className="mb-4 flex items-center gap-1 rounded-full border border-border bg-bg p-1">
-          <button onClick={() => setTab("home")} className={pillClass(tab === "home")}>
-            Home
+          <button onClick={() => setTab("profile")} className={pillClass(tab === "profile")}>
+            Perfil
           </button>
           <button onClick={() => setTab("leaderboard")} className={pillClass(tab === "leaderboard")}>
             Leaderboard
@@ -162,7 +162,7 @@ export default function AccountPanel({ open, onClose, onNavigateGame }: AccountP
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-none">
-          {tab === "home" ? (
+          {tab === "profile" ? (
             hasAnyIdentity ? (
               <AccountHome
                 stats={stats}

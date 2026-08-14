@@ -10,6 +10,7 @@ import { useDailyLock } from "@/components/shared/useDailyLock";
 import { useGameRecorder } from "@/components/shared/useGameRecorder";
 import { recordGameResult } from "@/lib/account";
 import { getCruzadevPuzzle, getEntryCells, type BuiltEntry, type Direction } from "@/lib/cruzadev";
+import { buildShareMessage } from "@/lib/share";
 
 type CheckMark = "correct" | "wrong" | null;
 
@@ -179,7 +180,10 @@ export default function CruzaDev() {
 
   function buildShareText(solvedCount: number, mistakeCount: number) {
     const mistakesLabel = mistakeCount === 0 ? "sem erros" : `com ${mistakeCount} erro${mistakeCount === 1 ? "" : "s"}`;
-    return `Codaily — CruzaDev\n${built.category}\n${solvedCount}/${built.entries.length} palavras, ${mistakesLabel}`;
+    return buildShareMessage(
+      "CruzaDev",
+      `${built.category}\n${solvedCount}/${built.entries.length} palavras, ${mistakesLabel}`
+    );
   }
 
   const shareText = buildShareText(solvedEntries.size, mistakeEntries.size);

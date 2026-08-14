@@ -9,6 +9,7 @@ import { useDailyLock } from "@/components/shared/useDailyLock";
 import { useGameRecorder } from "@/components/shared/useGameRecorder";
 import { recordGameResult } from "@/lib/account";
 import { getWordsOfTheDay } from "@/lib/words";
+import { buildShareMessage } from "@/lib/share";
 import {
   evaluateGuess,
   mergeKeyboardStatus,
@@ -139,7 +140,7 @@ export default function DevTermo() {
       return rows.map((row) => (row as EvaluatedLetter[]).map((c) => emojiFor[c.status]).join("")).join("\n");
     });
     const label = wordCount === 1 ? "DevTermo" : `DevTermo (${wordCount} palavras)`;
-    return `Codaily — ${label}\n${guesses.length}/${maxAttempts}\n\n${boards.join("\n\n")}`;
+    return buildShareMessage(label, `${guesses.length}/${maxAttempts}\n\n${boards.join("\n\n")}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [words, solvedAt, guesses, maxAttempts, wordCount]);
 
